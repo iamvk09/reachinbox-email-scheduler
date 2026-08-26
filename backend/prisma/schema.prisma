@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Email {
+  id             String    @id @default(uuid())
+  recipient      String
+  subject        String
+  body           String    @db.Text
+  sender         String
+  hourly_limit   Int?      @map("hourly_limit")
+  scheduled_time DateTime  @map("scheduled_time")
+  status         String    @default("pending") // "pending" | "sending" | "sent" | "failed"
+  sent_at        DateTime? @map("sent_at")
+  preview_url    String?   @map("preview_url")
+  error_message  String?   @map("error_message")
+  created_at     DateTime  @default(now()) @map("created_at")
+  updated_at     DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([sender])
+  @@index([scheduled_time])
+  @@map("emails")
+}
