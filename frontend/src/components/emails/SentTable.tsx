@@ -1,9 +1,10 @@
-import React from "react";
-import { RefreshCw, ExternalLink, Calendar, AlertCircle } from "lucide-react";
+import React, { useState } from "react";
+import { RefreshCw, ExternalLink, Calendar, AlertCircle, Eye, Mail, User } from "lucide-react";
 import { EmailRecord } from "../../types/email";
 import { Table, Column } from "../common/Table";
 import { Badge } from "../common/Badge";
 import { Button } from "../common/Button";
+import { Modal } from "../common/Modal";
 import { formatDateTime } from "../../utils/dateUtils";
 
 export interface SentTableProps {
@@ -13,6 +14,8 @@ export interface SentTableProps {
 }
 
 export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefresh }) => {
+  const [selectedEmail, setSelectedEmail] = useState<EmailRecord | null>(null);
+
   const columns: Column<EmailRecord>[] = [
     {
       key: "recipient",
@@ -66,19 +69,30 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
       header: "Preview & Link",
       className: "text-right",
       render: (email) => (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectedEmail(email)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-sm"
+            title="Preview full email content"
+          >
+            <Eye className="w-3.5 h-3.5 text-slate-600" />
+            <span>View Email</span>
+          </button>
+
           {email.preview_url ? (
             <a
               href={email.preview_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm"
+              title="Open in Ethereal Mailbox"
             >
-              <span>Ethereal Preview</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Ethereal</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
           ) : (
-            <span className="text-xs text-slate-400 italic">No link available</span>
+            <span className="text-xs text-slate-400 italic">No link</span>
           )}
         </div>
       ),
@@ -117,6 +131,79 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
           description: "Delivered emails with Ethereal preview links will appear here once dispatched.",
         }}
       />
+
+      {/* Email Message Detail & Preview Modal */}
+      {selectedEmail && (
+        <Modal
+          isOpen={!!selectedEmail}
+          onClose={() => setSelectedEmail(null)}
+          title="Delivered Email Preview"
+          subtitle={`Campaign message dispatched on ${formatDateTime(selectedEmail.sent_at || selectedEmail.created_at)}`}
+          maxWidth="2xl"
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500 font-medium">Subject:</span>
+                <span className="font-semibold text-slate-900 text-sm">{selectedEmail.subject}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">From:</span>
+                <span className="font-mono text-slate-800 font-medium flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  {selectedEmail.sender}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">To (Recipient):</span>
+                <span className="font-mono text-slate-800 font-medium flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  {selectedEmail.recipient}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">Status:</span>
+                <Badge status={selectedEmail.status} />
+              </div>
+            </div>
+
+            {/* Email Body Rendering */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                Email Content Body
+              </label>
+              <div className="p-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm min-h-[140px] whitespace-pre-wrap font-sans leading-relaxed shadow-inner">
+                {selectedEmail.body}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+              {selectedEmail.preview_url ? (
+                <a
+                  href={selectedEmail.preview_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open in Ethereal Mailbox</span>
+                </a>
+              ) : (
+                <div />
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedEmail(null)}
+              >
+                Close Preview
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
