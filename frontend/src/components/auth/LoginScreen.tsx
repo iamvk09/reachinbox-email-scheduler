@@ -18,7 +18,9 @@ export const LoginScreen: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleClientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "866106174388-f6naibu1te99klbmrmrr6g79rt9efqbv.apps.googleusercontent.com";
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
     try {
@@ -29,12 +31,12 @@ export const LoginScreen: React.FC = () => {
       login(decoded.name, decoded.email, decoded.picture);
     } catch (err: any) {
       console.error("Google login decode error:", err);
-      setError("Unable to read the Google account profile. Please try again.");
+      setError("Unable to read Google account profile. Please try again.");
     }
   };
 
   const handleGoogleError = () => {
-    setError("Google Sign-In was closed or cancelled. You can also sign in directly below.");
+    setError("Google Sign-In was closed or encountered a cross-origin error. You can also sign in directly below.");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,7 +75,7 @@ export const LoginScreen: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">
         <div className="bg-slate-900/90 py-8 px-6 shadow-2xl rounded-2xl border border-slate-800 backdrop-blur-xl sm:px-10 space-y-6">
           
-          {/* Real Google OAuth Login if client ID is configured */}
+          {/* Real Google OAuth Login */}
           {googleClientId && (
             <div className="space-y-3">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 text-center">
@@ -83,18 +85,17 @@ export const LoginScreen: React.FC = () => {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  useOneTap
                   theme="filled_black"
                   shape="pill"
                   size="large"
                   text="signin_with"
-                  width="340"
+                  width="320"
                 />
               </div>
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-slate-800"></div>
-                <span className="flex-shrink mx-3 text-slate-500 text-xs uppercase font-medium">Or enter details</span>
+                <span className="flex-shrink mx-3 text-slate-500 text-xs uppercase font-medium">Or enter manually</span>
                 <div className="flex-grow border-t border-slate-800"></div>
               </div>
             </div>
@@ -107,7 +108,7 @@ export const LoginScreen: React.FC = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Alex Rivers"
+              placeholder="e.g. Vibhor Kumar"
               leftIcon={<User className="w-4 h-4" />}
               required
             />

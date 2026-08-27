@@ -50,6 +50,9 @@ services:
           type: web
           name: reachinbox-backend
           property: host
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 866106174388-f6naibu1te99klbmrmrr6g79rt9efqbv.apps.googleusercontent.com
+
 
   # Managed Redis Instance on Render
   - type: redis
