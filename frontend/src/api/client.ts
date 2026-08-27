@@ -8,22 +8,25 @@ export function getApiBaseUrl(): string {
   }
 
   // 2. Check environment variable
-  const rawEnv = import.meta.env.VITE_API_URL?.trim();
-  if (rawEnv && rawEnv !== "reachinbox-backend" && !rawEnv.startsWith("reachinbox-backend:")) {
+  let rawEnv = import.meta.env.VITE_API_URL?.trim();
+  if (rawEnv) {
+    // If Render provided internal host name without domain (e.g. "reachinbox-backend-0zh6")
+    if (!rawEnv.includes(".") && !rawEnv.startsWith("localhost")) {
+      rawEnv = `${rawEnv}.onrender.com`;
+    }
     if (rawEnv.startsWith("http://") || rawEnv.startsWith("https://")) {
       return rawEnv.replace(/\/+$/, "");
     }
     return `https://${rawEnv}`.replace(/\/+$/, "");
   }
 
-  // 3. Automatic detection for Render deployment:
+  // 3. Automatic detection from browser hostname on Render:
+  // e.g. reachinbox-frontend-xxxx.onrender.com -> reachinbox-backend-xxxx.onrender.com
   if (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")) {
-    if (window.location.hostname.includes("reachinbox-frontend")) {
-      return window.location.origin.replace("reachinbox-frontend", "reachinbox-backend");
-    }
+    return window.location.origin.replace("reachinbox-frontend", "reachinbox-backend");
   }
 
-  // 4. Default fallback for local development
+  // 4. Default fallback for local development (Vite proxy)
   return "";
 }
 
@@ -69,7 +72,7 @@ export async function apiRequest<T>(
   } catch (networkError: any) {
     console.error(`[API NETWORK ERROR] Failed to connect to ${url}:`, networkError);
     throw new Error(
-      `Failed to connect to backend server (${baseUrl || "localhost:4000"}). If your Render backend is waking up from idle, please allow ~20-30 seconds and retry.`
+      `Failed to connect to backend (${baseUrl || "localhost:4000"}). If your Render backend is waking up from idle, please allow ~20-30 seconds and retry.`
     );
   }
 
