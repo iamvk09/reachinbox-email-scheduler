@@ -9,6 +9,7 @@ import {
   FileText,
   User,
   Gauge,
+  Server,
 } from "lucide-react";
 
 import { Modal } from "../common/Modal";
@@ -18,6 +19,7 @@ import { useAuth } from "../../context/AuthContext";
 import { parseRecipientsInput, readCsvFile } from "../../utils/csvParser";
 import { scheduleEmailsApi } from "../../api/emailApi";
 import { ScheduleEmailPayloadItem } from "../../types/email";
+import { getApiBaseUrl, setCustomApiUrl } from "../../api/client";
 
 export interface ComposeModalProps {
   isOpen: boolean;
@@ -41,7 +43,10 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
   const [hourlyLimit, setHourlyLimit] = useState(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showServerInput, setShowServerInput] = useState(false);
+  const [customServerUrl, setCustomServerUrl] = useState(getApiBaseUrl());
 
+  // Initialize defaults on open
   useEffect(() => {
     if (isOpen) {
       setSender(user?.email || "campaign@reachinbox.test");
@@ -51,23 +56,28 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
       setDelaySeconds(2);
       setHourlyLimit(10);
       setErrorMessage("");
+      setShowServerInput(false);
 
+      // Default start time to now formatted for datetime-local input (YYYY-MM-DDTHH:mm)
       const now = new Date();
-      now.setMinutes(now.getMinutes() + 1);
+      now.setMinutes(now.getMinutes() + 1); // 1 minute in future as default
       const offset = now.getTimezoneOffset() * 60000;
       const localISOTime = new Date(now.getTime() - offset).toISOString().slice(0, 16);
       setStartTime(localISOTime);
     }
   }, [isOpen, user]);
 
+  // Live parsed recipients calculation
   const parsedRecipients = parseRecipientsInput(recipientsRawText);
 
+  // Handle CSV file upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       const fileContent = await readCsvFile(file);
+      // Append to current recipients text
       setRecipientsRawText((prev) =>
         prev.trim() ? `${prev}\n${fileContent}` : fileContent
       );
@@ -75,8 +85,14 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
     } catch (err: any) {
       setErrorMessage("Failed to read CSV file.");
     } finally {
-      e.target.value = "";
+      e.target.value = ""; // Reset input
     }
+  };
+
+  const handleSaveCustomServer = () => {
+    setCustomApiUrl(customServerUrl);
+    setErrorMessage("");
+    setShowServerInput(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,6 +129,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Build batch payload with staggered scheduled times
       const startMs = startDate.getTime();
       const delayMs = Math.max(0, delaySeconds) * 1000;
 
@@ -125,7 +142,6 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
             body: body.trim(),
             sender: sender.trim(),
             scheduledTime: itemScheduledDate.toISOString(),
-            hourlyLimit,
           };
         }
       );
@@ -135,7 +151,11 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
       onSuccess(payload.length);
       onClose();
     } catch (err: any) {
-      setErrorMessage(err.message || "Failed to schedule emails. Please try again.");
+      const msg = err.message || "Failed to schedule emails.";
+      setErrorMessage(msg);
+      if (msg.includes("Failed to connect") || msg.includes("Failed to fetch")) {
+        setShowServerInput(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -150,6 +170,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Sender Email */}
         <Input
           label="Sender Email Address"
           type="email"
@@ -160,6 +181,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           required
         />
 
+        {/* Recipients Input & CSV Upload */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-medium text-slate-300">
@@ -184,6 +206,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
             placeholder="alice@example.com, bob@example.com&#10;or paste/upload CSV column with emails..."
           />
 
+          {/* Live Recipient Badges */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             {parsedRecipients.totalDetected > 0 ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md">
@@ -206,6 +229,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           </div>
         </div>
 
+        {/* Subject */}
         <Input
           label="Subject Line"
           type="text"
@@ -216,6 +240,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           required
         />
 
+        {/* Body */}
         <Textarea
           label="Email Body / Message"
           rows={4}
@@ -225,6 +250,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           required
         />
 
+        {/* Scheduling Controls: Start Time, Delay, & Hourly Limit */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 bg-slate-950/60 rounded-xl border border-slate-800">
           <Input
             label="Start Time"
@@ -257,6 +283,7 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           />
         </div>
 
+        {/* Summary calculation */}
         {parsedRecipients.totalDetected > 0 && (
           <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300">
             <p className="font-semibold text-white">Campaign Dispatch Summary:</p>
@@ -269,13 +296,39 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
           </div>
         )}
 
+        {/* Error message */}
         {errorMessage && (
-          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMessage}</span>
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+
+            {showServerInput && (
+              <div className="mt-2 pt-2 border-t border-rose-500/20 space-y-2">
+                <p className="text-slate-300 font-medium">Backend URL Configuration:</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={customServerUrl}
+                    onChange={(e) => setCustomServerUrl(e.target.value)}
+                    placeholder="https://reachinbox-backend-xxxx.onrender.com"
+                    className="flex-1 bg-slate-900 border border-slate-700 text-white rounded px-2.5 py-1.5 text-xs font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveCustomServer}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold"
+                  >
+                    Save URL
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
           <Button
             type="button"

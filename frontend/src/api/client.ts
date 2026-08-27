@@ -1,4 +1,4 @@
-function getApiBaseUrl(): string {
+export function getApiBaseUrl(): string {
   // 1. Check if custom override is stored in localStorage
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem("reachinbox_api_url");
@@ -17,7 +17,6 @@ function getApiBaseUrl(): string {
   }
 
   // 3. Automatic detection for Render deployment:
-  // e.g. reachinbox-frontend-xxxx.onrender.com -> reachinbox-backend-xxxx.onrender.com
   if (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")) {
     if (window.location.hostname.includes("reachinbox-frontend")) {
       return window.location.origin.replace("reachinbox-frontend", "reachinbox-backend");
@@ -26,6 +25,27 @@ function getApiBaseUrl(): string {
 
   // 4. Default fallback for local development
   return "";
+}
+
+export function setCustomApiUrl(url: string): void {
+  if (typeof window !== "undefined") {
+    const cleanUrl = url.trim().replace(/\/+$/, "");
+    if (cleanUrl) {
+      localStorage.setItem("reachinbox_api_url", cleanUrl);
+    } else {
+      localStorage.removeItem("reachinbox_api_url");
+    }
+  }
+}
+
+export async function checkServerHealth(): Promise<boolean> {
+  try {
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/health`, { method: "GET" });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function apiRequest<T>(
@@ -49,7 +69,7 @@ export async function apiRequest<T>(
   } catch (networkError: any) {
     console.error(`[API NETWORK ERROR] Failed to connect to ${url}:`, networkError);
     throw new Error(
-      `Failed to connect to backend server at ${baseUrl || "local API"}. If backend is waking up on Render, please wait 30 seconds and retry.`
+      `Failed to connect to backend server (${baseUrl || "localhost:4000"}). If your Render backend is waking up from idle, please allow ~20-30 seconds and retry.`
     );
   }
 
