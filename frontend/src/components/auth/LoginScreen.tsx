@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Mail, ShieldCheck, Zap } from "lucide-react";
+import { Mail, ShieldCheck, Zap, ArrowRight, User } from "lucide-react";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../context/AuthContext";
+import { Button } from "../common/Button";
+import { Input } from "../common/Input";
 
 interface GoogleJwtPayload {
   name: string;
@@ -13,7 +15,10 @@ interface GoogleJwtPayload {
 
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
+  const [name, setName] = useState("Vibhor Kumar");
+  const [email, setEmail] = useState("kumarvibhor23@gmail.com");
   const [error, setError] = useState("");
+  const [showCustomForm, setShowCustomForm] = useState(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
@@ -30,7 +35,20 @@ export const LoginScreen: React.FC = () => {
   };
 
   const handleGoogleError = () => {
-    setError("Google Sign-In failed or was closed. Please try again.");
+    setError("Google Sign-In was closed or cancelled. You can also sign in directly below.");
+  };
+
+  const handleCustomSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    login(name.trim(), email.trim());
   };
 
   return (
@@ -55,12 +73,13 @@ export const LoginScreen: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">
         <div className="bg-slate-900/90 py-8 px-6 shadow-2xl rounded-2xl border border-slate-800 backdrop-blur-xl sm:px-10 space-y-6">
-          {/* Google Identity Services OAuth login */}
-          <div className="space-y-3">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 text-center">
-              Sign in with Google OAuth
-            </label>
-            {googleClientId ? (
+          
+          {/* Real Google OAuth Login if client ID is configured */}
+          {googleClientId && (
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 text-center">
+                Sign in with Google
+              </label>
               <div className="flex justify-center w-full">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
@@ -73,13 +92,81 @@ export const LoginScreen: React.FC = () => {
                   width="340"
                 />
               </div>
-            ) : (
-              <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-center text-xs text-amber-300">
-                Google sign-in is not configured. Set <code>VITE_GOOGLE_CLIENT_ID</code> in
-                <code>frontend/.env</code> and restart the frontend.
-              </p>
-            )}
-          </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink mx-3 text-slate-500 text-xs uppercase font-medium">Or</span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Sign-In Options */}
+          {!showCustomForm ? (
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full justify-center shadow-lg shadow-indigo-600/20"
+                onClick={() => login(name, email)}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                Sign in as {name}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setShowCustomForm(true)}
+                className="w-full text-center text-xs text-indigo-400 hover:text-indigo-300 underline font-medium"
+              >
+                Sign in with different name / email
+              </button>
+            </div>
+          ) : (
+            <form className="space-y-4" onSubmit={handleCustomSubmit}>
+              <Input
+                label="Full Name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Vibhor Kumar"
+                leftIcon={<User className="w-4 h-4" />}
+                required
+              />
+
+              <Input
+                label="Sender Email Address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="e.g. user@reachinbox.test"
+                leftIcon={<Mail className="w-4 h-4" />}
+                helperText="Will be used as your default 'from' address."
+                required
+              />
+
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="w-1/3 justify-center"
+                  onClick={() => setShowCustomForm(false)}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  className="w-2/3 justify-center"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Continue
+                </Button>
+              </div>
+            </form>
+          )}
 
           {error && (
             <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
@@ -90,7 +177,7 @@ export const LoginScreen: React.FC = () => {
           <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-              Google OAuth Enabled
+              Google OAuth Ready
             </span>
             <span className="flex items-center gap-1">
               <Zap className="w-3.5 h-3.5 text-amber-400" />
