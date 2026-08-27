@@ -252,48 +252,7 @@ npx tsx test/live-verification.ts
 
 ---
 
-## Demo Video Walkthrough Script
 
-Follow this step-by-step flow when recording the demonstration video:
-
-### 1. Introduction (0:00 – 0:30)
-- Introduce the project: ReachInbox Email Scheduler built with TypeScript, Express, BullMQ, Redis, PostgreSQL (Prisma), Nodemailer (Ethereal), and React + Tailwind.
-- Show the two running Docker containers with `docker ps`.
-
-### 2. Dashboard & Single Email Scheduling (0:30 – 1:30)
-- Sign in via Google OAuth (or quick demo login).
-- Open **Compose New Email**.
-- Schedule an email to `lead@example.com` with a 5-second delay.
-- Show the email appear in the **"Scheduled Emails"** tab with its countdown badge.
-- Wait 5 seconds: watch it automatically move to **"Sent Emails"**.
-- Click **"Ethereal Preview"** to open the rendered email message in your browser.
-
-### 3. CSV Bulk Upload & Staggered Scheduling (1:30 – 2:30)
-- Open **Compose New Email**.
-- Upload [`sample-leads.csv`](./sample-leads.csv) (10 prospect leads).
-- Highlight the live recipient counter badge (`✓ 10 valid recipients detected`).
-- Set start time and a 2-second delay between emails.
-- Click Schedule: observe how BullMQ staggers each send by 2 seconds.
-
-### 4. CRITICAL: Restart Safety & Reconciliation Demo (2:30 – 4:00)
-1. Open Compose and schedule an email to `restart-test@example.com` with a **15-second delay**.
-2. Show the pending record in the Scheduled table and backend terminal.
-3. **Kill the backend process** (`Ctrl+C` in the backend terminal) while the email is still pending.
-4. Wait 5 seconds while the backend is completely offline.
-5. **Restart the backend** (`npm run dev`).
-6. Point to the terminal logs showing:
-   ```
-   [RECONCILER] Found 1 'pending' email record(s) in PostgreSQL.
-   [RECONCILER] Re-enqueued missing job for email ... (remaining delay: ~8000ms)
-   ```
-7. Watch the remaining timer elapse and confirm the email **delivers on time** and is **sent exactly once**.
-
-### 5. Rate Limiting Deferral Demo (4:00 – 5:00)
-- Explain that `MAX_EMAILS_PER_HOUR_PER_SENDER` is set in `.env`.
-- Schedule more emails than the limit for a single sender.
-- Show terminal logs where excess emails are **not failed**, but safely deferred to the start of the next hour window (`scheduled_time` updated).
-
----
 
 ## API Reference
 
