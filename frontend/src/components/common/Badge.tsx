@@ -1,9 +1,9 @@
 import React from "react";
-import { Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { EmailStatus } from "../../types/email";
 
 export interface BadgeProps {
-  status: EmailStatus | "deferred";
+  status: EmailStatus | "deferred" | "sending";
   label?: string;
   size?: "sm" | "md";
 }
@@ -16,29 +16,29 @@ export const Badge: React.FC<BadgeProps> = ({ status, label, size = "md" }) => {
 
   const config = {
     pending: {
-      bg: "bg-amber-500/10 text-amber-400 border border-amber-500/30",
-      icon: <Clock className="w-3.5 h-3.5" />,
+      bg: "bg-amber-50 text-amber-700 border border-amber-200",
+      icon: <Clock className="w-3.5 h-3.5 text-amber-600" />,
       defaultText: "Scheduled",
     },
     sending: {
-      bg: "bg-sky-500/10 text-sky-400 border border-sky-500/30",
-      icon: <Clock className="w-3.5 h-3.5 animate-spin" />,
+      bg: "bg-sky-50 text-sky-700 border border-sky-200",
+      icon: <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />,
       defaultText: "Sending",
     },
     sent: {
-      bg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30",
-      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+      bg: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
       defaultText: "Sent",
     },
     failed: {
-      bg: "bg-rose-500/10 text-rose-400 border border-rose-500/30",
-      icon: <XCircle className="w-3.5 h-3.5" />,
+      bg: "bg-rose-50 text-rose-700 border border-rose-200",
+      icon: <XCircle className="w-3.5 h-3.5 text-rose-600" />,
       defaultText: "Failed",
     },
     deferred: {
-      bg: "bg-blue-500/10 text-blue-400 border border-blue-500/30",
-      icon: <Clock className="w-3.5 h-3.5" />,
-      defaultText: "Deferred (Rate Limited)",
+      bg: "bg-blue-50 text-blue-700 border border-blue-200",
+      icon: <Clock className="w-3.5 h-3.5 text-blue-600" />,
+      defaultText: "Deferred",
     },
   };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Plus, Clock, User, Calendar } from "lucide-react";
+import { RefreshCw, Plus, Clock, Calendar } from "lucide-react";
 import { EmailRecord } from "../../types/email";
 import { Table, Column } from "../common/Table";
 import { Badge } from "../common/Badge";
@@ -22,13 +22,12 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
   const columns: Column<EmailRecord>[] = [
     {
       key: "recipient",
-      header: "Recipient",
+      header: "Recipient (To)",
       render: (email) => (
         <div>
-          <span className="font-semibold text-slate-100 block">{email.recipient}</span>
-          <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-            <User className="w-3 h-3 text-slate-500 inline" />
-            From: {email.sender}
+          <span className="font-semibold text-slate-900 block text-sm">{email.recipient}</span>
+          <span className="text-xs text-slate-500 font-medium mt-0.5 inline-block">
+            From: <span className="text-slate-700 font-mono">{email.sender}</span>
           </span>
         </div>
       ),
@@ -38,8 +37,8 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
       header: "Subject & Message",
       render: (email) => (
         <div className="max-w-xs sm:max-w-md">
-          <p className="font-medium text-slate-200 truncate">{email.subject}</p>
-          <p className="text-xs text-slate-400 truncate mt-0.5 line-clamp-1">
+          <p className="font-medium text-slate-900 truncate text-sm">{email.subject}</p>
+          <p className="text-xs text-slate-500 truncate mt-0.5 line-clamp-1">
             {email.body.replace(/<[^>]*>?/gm, "")}
           </p>
         </div>
@@ -47,15 +46,15 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
     },
     {
       key: "scheduled_time",
-      header: "Scheduled For",
+      header: "Scheduled Time",
       render: (email) => (
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-slate-300">
-            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>{formatDateTime(email.scheduled_time)}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-medium">
-            <Clock className="w-3 h-3" />
+          <div className="flex items-center gap-1.5 text-xs text-amber-700 font-medium">
+            <Clock className="w-3 h-3 text-amber-600" />
             <span>{formatRemainingTime(email.scheduled_time)}</span>
           </div>
         </div>
@@ -65,16 +64,12 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
       key: "status",
       header: "Status",
       className: "text-right",
-          render: (email) => (
-            <div className="flex justify-end">
-              <Badge
-                status={email.status}
-                label={email.status === "sending" ? "Sending" : "Pending Dispatch"}
-              />
-            </div>
-          ),
+      render: () => (
+        <div className="flex justify-end">
+          <Badge status="pending" label="Scheduled" />
+        </div>
+      ),
     },
-
   ];
 
   return (
@@ -82,8 +77,8 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
       {/* Table toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-white">Pending Queued Emails</h3>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+          <h3 className="text-base font-semibold text-slate-900">Scheduled Queue</h3>
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
             {emails.length}
           </span>
         </div>
@@ -94,7 +89,7 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
           isLoading={isLoading}
           leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />}
         >
-          Refresh Queue
+          Refresh
         </Button>
       </div>
 
@@ -105,8 +100,8 @@ export const ScheduledTable: React.FC<ScheduledTableProps> = ({
         isLoading={isLoading}
         keyExtractor={(item) => item.id}
         emptyState={{
-          title: "No pending emails in queue",
-          description: "All scheduled emails have been dispatched or none have been created yet.",
+          title: "No scheduled emails in queue",
+          description: "All scheduled emails have been dispatched or none have been scheduled yet.",
           action: (
             <Button
               variant="primary"

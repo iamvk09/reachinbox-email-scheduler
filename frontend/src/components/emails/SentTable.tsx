@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, ExternalLink, User, Calendar, AlertCircle } from "lucide-react";
+import { RefreshCw, ExternalLink, Calendar, AlertCircle } from "lucide-react";
 import { EmailRecord } from "../../types/email";
 import { Table, Column } from "../common/Table";
 import { Badge } from "../common/Badge";
@@ -16,13 +16,12 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
   const columns: Column<EmailRecord>[] = [
     {
       key: "recipient",
-      header: "Recipient & Sender",
+      header: "Recipient (To)",
       render: (email) => (
         <div>
-          <span className="font-semibold text-slate-100 block">{email.recipient}</span>
-          <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-            <User className="w-3 h-3 text-slate-500 inline" />
-            From: {email.sender}
+          <span className="font-semibold text-slate-900 block text-sm">{email.recipient}</span>
+          <span className="text-xs text-slate-500 font-medium mt-0.5 inline-block">
+            From: <span className="text-slate-700 font-mono">{email.sender}</span>
           </span>
         </div>
       ),
@@ -32,14 +31,14 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
       header: "Subject & Message",
       render: (email) => (
         <div className="max-w-xs sm:max-w-md">
-          <p className="font-medium text-slate-200 truncate">{email.subject}</p>
-          <p className="text-xs text-slate-400 truncate mt-0.5 line-clamp-1">
+          <p className="font-medium text-slate-900 truncate text-sm">{email.subject}</p>
+          <p className="text-xs text-slate-500 truncate mt-0.5 line-clamp-1">
             {email.body.replace(/<[^>]*>?/gm, "")}
           </p>
           {email.error_message && (
-            <p className="text-[11px] text-rose-400 flex items-center gap-1 mt-1 font-mono bg-rose-500/10 px-2 py-0.5 rounded">
-              <AlertCircle className="w-3 h-3 shrink-0" />
-              {email.error_message}
+            <p className="text-xs text-rose-700 flex items-center gap-1.5 mt-1 font-mono bg-rose-50 border border-rose-200 px-2.5 py-1 rounded">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+              <span>{email.error_message}</span>
             </p>
           )}
         </div>
@@ -47,11 +46,11 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
     },
     {
       key: "sent_at",
-      header: "Sent At",
+      header: "Sent Time",
       render: (email) => (
         <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5 text-xs text-slate-300">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>{formatDateTime(email.sent_at || email.created_at)}</span>
           </div>
         </div>
@@ -73,13 +72,13 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
               href={email.preview_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm"
             >
               <span>Ethereal Preview</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           ) : (
-            <span className="text-xs text-slate-500 italic">No link available</span>
+            <span className="text-xs text-slate-400 italic">No link available</span>
           )}
         </div>
       ),
@@ -91,8 +90,8 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
       {/* Table toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-white">Delivered & Processed Emails</h3>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+          <h3 className="text-base font-semibold text-slate-900">Delivered & Failed Emails</h3>
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
             {emails.length}
           </span>
         </div>
@@ -103,7 +102,7 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
           isLoading={isLoading}
           leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />}
         >
-          Refresh Log
+          Refresh
         </Button>
       </div>
 
@@ -121,4 +120,3 @@ export const SentTable: React.FC<SentTableProps> = ({ emails, isLoading, onRefre
     </div>
   );
 };
-

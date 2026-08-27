@@ -52,12 +52,22 @@ export async function handleScheduleEmails(req: Request, res: Response): Promise
 
 export async function handleGetScheduledEmails(req: Request, res: Response): Promise<void> {
   try {
-    const scheduledEmails = await prisma.email.findMany({
-      where: {
-        status: {
-          in: ["pending", "sending"],
-        },
+    const sender = req.query.sender as string | undefined;
+    const where: any = {
+      status: {
+        in: ["pending", "sending"],
       },
+    };
+
+    if (sender && sender.trim() !== "") {
+      where.sender = {
+        equals: sender.trim(),
+        mode: "insensitive",
+      };
+    }
+
+    const scheduledEmails = await prisma.email.findMany({
+      where,
       orderBy: {
         scheduled_time: "asc",
       },
@@ -79,12 +89,22 @@ export async function handleGetScheduledEmails(req: Request, res: Response): Pro
 
 export async function handleGetSentEmails(req: Request, res: Response): Promise<void> {
   try {
-    const sentEmails = await prisma.email.findMany({
-      where: {
-        status: {
-          in: ["sent", "failed"],
-        },
+    const sender = req.query.sender as string | undefined;
+    const where: any = {
+      status: {
+        in: ["sent", "failed"],
       },
+    };
+
+    if (sender && sender.trim() !== "") {
+      where.sender = {
+        equals: sender.trim(),
+        mode: "insensitive",
+      };
+    }
+
+    const sentEmails = await prisma.email.findMany({
+      where,
       orderBy: [
         { sent_at: "desc" },
         { created_at: "desc" },
