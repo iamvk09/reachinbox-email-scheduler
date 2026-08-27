@@ -24,8 +24,9 @@ export interface ScheduleEmailPayloadItem {
   body: string;
   sender: string;
   scheduledTime: string;
-  hourlyLimit: number;
+  hourlyLimit?: number;
 }
+
 
 export interface ApiResponse<T> {
   success: boolean;
