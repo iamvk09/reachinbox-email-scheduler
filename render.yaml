@@ -37,7 +37,6 @@ services:
   - type: web
     name: reachinbox-frontend
     env: static
-    region: oregon
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
@@ -51,7 +50,7 @@ services:
         fromService:
           type: web
           name: reachinbox-backend
-          property: url
+          property: host
 
   # Managed Redis Instance on Render
   - type: redis

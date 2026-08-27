@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+const rawApiUrl = import.meta.env.VITE_API_URL?.trim() || "";
+const API_BASE_URL = rawApiUrl
+  ? rawApiUrl.startsWith("http://") || rawApiUrl.startsWith("https://")
+    ? rawApiUrl
+    : `https://${rawApiUrl}`
+  : "";
 
 export async function apiRequest<T>(
   endpoint: string,
@@ -21,7 +26,7 @@ export async function apiRequest<T>(
     data = rawBody ? JSON.parse(rawBody) : ({} as T);
   } catch {
     throw new Error(
-      `The API returned an invalid response (HTTP ${response.status}). Check that the backend is running on port 4000.`
+      `The API returned an invalid response (HTTP ${response.status}). Check that the backend is running.`
     );
   }
 
@@ -30,7 +35,7 @@ export async function apiRequest<T>(
       data.error ||
         (rawBody
           ? `HTTP ${response.status}: Failed request`
-          : `The API returned no response (HTTP ${response.status}). Check that the backend is running on port 4000.`)
+          : `The API returned no response (HTTP ${response.status}). Check that the backend is running.`)
     );
   }
 
