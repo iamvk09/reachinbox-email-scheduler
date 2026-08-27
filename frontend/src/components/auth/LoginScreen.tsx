@@ -15,10 +15,9 @@ interface GoogleJwtPayload {
 
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
-  const [name, setName] = useState("Vibhor Kumar");
-  const [email, setEmail] = useState("kumarvibhor23@gmail.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [showCustomForm, setShowCustomForm] = useState(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
@@ -38,7 +37,7 @@ export const LoginScreen: React.FC = () => {
     setError("Google Sign-In was closed or cancelled. You can also sign in directly below.");
   };
 
-  const handleCustomSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setError("Please enter your name.");
@@ -95,78 +94,44 @@ export const LoginScreen: React.FC = () => {
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-slate-800"></div>
-                <span className="flex-shrink mx-3 text-slate-500 text-xs uppercase font-medium">Or</span>
+                <span className="flex-shrink mx-3 text-slate-500 text-xs uppercase font-medium">Or enter details</span>
                 <div className="flex-grow border-t border-slate-800"></div>
               </div>
             </div>
           )}
 
-          {/* Quick Sign-In Options */}
-          {!showCustomForm ? (
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="primary"
-                className="w-full justify-center shadow-lg shadow-indigo-600/20"
-                onClick={() => login(name, email)}
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-              >
-                Sign in as {name}
-              </Button>
+          {/* Standard direct sign-in form */}
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <Input
+              label="Your Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Alex Rivers"
+              leftIcon={<User className="w-4 h-4" />}
+              required
+            />
 
-              <button
-                type="button"
-                onClick={() => setShowCustomForm(true)}
-                className="w-full text-center text-xs text-indigo-400 hover:text-indigo-300 underline font-medium"
-              >
-                Sign in with different name / email
-              </button>
-            </div>
-          ) : (
-            <form className="space-y-4" onSubmit={handleCustomSubmit}>
-              <Input
-                label="Full Name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Vibhor Kumar"
-                leftIcon={<User className="w-4 h-4" />}
-                required
-              />
+            <Input
+              label="Sender Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. user@company.com"
+              leftIcon={<Mail className="w-4 h-4" />}
+              helperText="This email will default as your 'from' sender in campaigns."
+              required
+            />
 
-              <Input
-                label="Sender Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. user@reachinbox.test"
-                leftIcon={<Mail className="w-4 h-4" />}
-                helperText="Will be used as your default 'from' address."
-                required
-              />
-
-              <div className="flex items-center gap-2 pt-1">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="w-1/3 justify-center"
-                  onClick={() => setShowCustomForm(false)}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  className="w-2/3 justify-center"
-                  rightIcon={<ArrowRight className="w-4 h-4" />}
-                >
-                  Continue
-                </Button>
-              </div>
-            </form>
-          )}
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full justify-center shadow-lg shadow-indigo-600/20"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Sign In to Workspace
+            </Button>
+          </form>
 
           {error && (
             <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
