@@ -1,23 +1,57 @@
-const rawApiUrl = import.meta.env.VITE_API_URL?.trim() || "";
-const API_BASE_URL = rawApiUrl
-  ? rawApiUrl.startsWith("http://") || rawApiUrl.startsWith("https://")
-    ? rawApiUrl
-    : `https://${rawApiUrl}`
-  : "";
+function getApiBaseUrl(): string {
+  // 1. Check if custom override is stored in localStorage
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("reachinbox_api_url");
+    if (stored && stored.trim()) {
+      return stored.trim().replace(/\/+$/, "");
+    }
+  }
+
+  // 2. Check environment variable
+  const rawEnv = import.meta.env.VITE_API_URL?.trim();
+  if (rawEnv && rawEnv !== "reachinbox-backend" && !rawEnv.startsWith("reachinbox-backend:")) {
+    if (rawEnv.startsWith("http://") || rawEnv.startsWith("https://")) {
+      return rawEnv.replace(/\/+$/, "");
+    }
+    return `https://${rawEnv}`.replace(/\/+$/, "");
+  }
+
+  // 3. Automatic detection for Render deployment:
+  // e.g. reachinbox-frontend-xxxx.onrender.com -> reachinbox-backend-xxxx.onrender.com
+  if (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")) {
+    if (window.location.hostname.includes("reachinbox-frontend")) {
+      return window.location.origin.replace("reachinbox-frontend", "reachinbox-backend");
+    }
+  }
+
+  // 4. Default fallback for local development
+  return "";
+}
 
 export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
 
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-    ...options,
-  });
+  console.log(`[API REQUEST] Fetching ${url}`);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      ...options,
+    });
+  } catch (networkError: any) {
+    console.error(`[API NETWORK ERROR] Failed to connect to ${url}:`, networkError);
+    throw new Error(
+      `Failed to connect to backend server at ${baseUrl || "local API"}. If backend is waking up on Render, please wait 30 seconds and retry.`
+    );
+  }
 
   const rawBody = await response.text();
   let data: { success?: boolean; error?: string } & T;
