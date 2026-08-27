@@ -340,6 +340,52 @@ Follow this step-by-step flow when recording the demonstration video:
 
 ---
 
+## Production Deployment Guide
+
+This project includes ready-to-use production deployment configurations for multiple cloud providers:
+
+### Option 1: 1-Click Deployment on Render (Recommended)
+This repository includes a [`render.yaml`](./render.yaml) Blueprint that provisions PostgreSQL, Redis, the Node backend, and the React frontend in a single step:
+1. Push your repository to GitHub.
+2. Log into [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** → **Blueprint**.
+4. Connect this GitHub repository.
+5. Render will automatically detect `render.yaml` and provision:
+   - **PostgreSQL Database** (`reachinbox-postgres`)
+   - **Redis Instance** (`reachinbox-redis`)
+   - **Express + BullMQ Backend** (`reachinbox-backend`)
+   - **React Static Dashboard** (`reachinbox-frontend`)
+6. Click **Apply** to deploy the full stack!
+
+---
+
+### Option 2: Frontend on Vercel + Backend on Render / Railway
+- **Frontend (Vercel)**:
+  1. Import the `frontend` folder into [Vercel](https://vercel.com).
+  2. Set Root Directory to `frontend`.
+  3. Set Environment Variable `VITE_API_URL` to your deployed backend URL.
+  4. Deploy! The included [`vercel.json`](./frontend/vercel.json) handles client-side SPA routing.
+- **Backend (Render / Railway / Fly.io)**:
+  1. Deploy using the included [`backend/Dockerfile`](./backend/Dockerfile).
+  2. Connect your managed PostgreSQL and Redis instances via `DATABASE_URL`, `REDIS_HOST`, and `REDIS_PORT`.
+
+---
+
+### Option 3: Self-Hosted Docker Container (VPS / EC2)
+Build and run the production Docker containers:
+```bash
+# Build backend container
+docker build -t reachinbox-backend ./backend
+
+# Build frontend container
+docker build -t reachinbox-frontend ./frontend
+
+# Run production stack with Docker Compose
+docker compose up -d
+```
+
+---
+
 ## Submission Checklist & Reviewer Access
 
 ### Repository Permissions
