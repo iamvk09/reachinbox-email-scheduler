@@ -53,17 +53,18 @@ services:
           name: reachinbox-backend
           property: url
 
-databases:
-  - name: reachinbox-postgres
-    databaseName: scheduler
-    user: scheduler
-    region: oregon
-    plan: free
-
-# Managed Redis instance on Render
+  # Managed Redis Instance on Render
   - type: redis
     name: reachinbox-redis
     region: oregon
     plan: free
     maxmemoryPolicy: noeviction
     ipAllowList: []
+
+databases:
+  # Managed PostgreSQL Database on Render
+  - name: reachinbox-postgres
+    databaseName: scheduler
+    user: scheduler
+    region: oregon
+    plan: free
