@@ -32,6 +32,11 @@ services:
         value: 1000
       - key: MAX_EMAILS_PER_HOUR_PER_SENDER
         value: 10
+      - key: ETHEREAL_USER
+        value: heb44ss2hlqllf3l@ethereal.email
+      - key: ETHEREAL_PASS
+        value: ejGvtQbrMBVgBzGv8q
+
 
   # Frontend React Dashboard
   - type: web
